@@ -29,14 +29,27 @@ jobs:
           rsvg-convert -w 1200 motorcycle/tally-cover.svg -o /tmp/motorcycle-preview.png
           convert /tmp/motorcycle-preview.png -background '#071827' -gravity center -extent 1200x630 motorcycle/motorcycle-social-preview.png
 
-      - name: Commit preview if changed
+      - name: Fix root calculator social preview metadata
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('motorcycle/index.html')
+          s = p.read_text(encoding='utf-8')
+          old = 'https://michaelbadiaon-byte.github.io/gadget-loan-quotation35-/motorcycle/social-preview.jpg'
+          new = 'https://michaelbadiaon-byte.github.io/gadget-loan-quotation35-/motorcycle/motorcycle-social-preview.png?v=20260918-2'
+          s = s.replace(old, new)
+          s = s.replace('<meta property="og:image:type" content="image/jpeg" />', '<meta property="og:image:type" content="image/png" />')
+          p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Commit preview and metadata if changed
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add motorcycle/motorcycle-social-preview.png
+          git add motorcycle/motorcycle-social-preview.png motorcycle/index.html
           if git diff --cached --quiet; then
             echo 'No preview changes.'
           else
-            git commit -m 'Generate motorcycle social preview'
+            git commit -m 'Fix motorcycle Messenger preview image'
             git push
           fi
